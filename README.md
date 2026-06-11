@@ -2,16 +2,16 @@
 
 這是一個透過 GitHub Actions 啟動臨時 Windows 環境，並使用 noVNC 在瀏覽器中訪問的解決方案。
 
-## 🎯 功能特點
+##  功能特點
 
-- ✅ 在 GitHub Actions 上運行 Windows 環境
-- ✅ 使用 TightVNC 作為 VNC 服務器
-- ✅ 使用 noVNC 提供瀏覽器訪問
-- ✅ 使用 ngrok 創建公開隧道
-- ✅ 無需本地安裝任何軟件
-- ✅ 最長可運行 6 小時
+-  在 GitHub Actions 上運行 Windows 環境
+-  使用 TightVNC 作為 VNC 服務器
+-  使用 noVNC 提供瀏覽器訪問
+-  使用 ngrok 創建公開隧道
+-  無需本地安裝任何軟件
+-  最長可運行 6 小時
 
-## 📋 系統架構
+##  系統架構
 
 ```
 GitHub Actions (Windows Runner)
@@ -124,25 +124,6 @@ Your Browser → noVNC Client
 - 檢查 workflow 是否仍在運行
 - 確認網絡連接穩定
 
-## 📚 相關資源
-
-- [TightVNC 官網](https://www.tightvnc.com/)
-- [noVNC GitHub](https://github.com/novnc/noVNC)
-- [ngrok 文檔](https://ngrok.com/docs)
-- [GitHub Actions 文檔](https://docs.github.com/en/actions)
-
-## 🤝 貢獻
-
-歡迎提交 Issues 和 Pull Requests！
-
 ## 📄 授權
 
 此項目使用 MIT 授權。
-
-## 🙏 致謝
-
-感謝以下開源專案：
-- noVNC 項目
-- TightVNC 團隊
-- ngrok 團隊
-- GitHub Actions
