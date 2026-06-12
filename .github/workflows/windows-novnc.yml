@@ -91,7 +91,7 @@ jobs:
         shell: powershell
         run: |
           Write-Host "Starting websockify..."
-          Start-Process -FilePath "python" -ArgumentList "-m websockify --web C:\novnc 6080 localhost:5900" -WindowStyle Hidden
+          Start-Process -FilePath "python" -ArgumentList "-m websockify --web C:\novnc 6080 127.0.0.1:5900" -WindowStyle Hidden
 
           Write-Host "Waiting for websockify to start..."
           Start-Sleep -Seconds 5
@@ -117,7 +117,7 @@ jobs:
           $ngrokUrl = $null
           for ($i = 0; $i -lt 12; $i++) {
             try {
-              $response = Invoke-RestMethod -Uri "http://localhost:4040/api/tunnels" -Method Get -ErrorAction Stop
+              $response = Invoke-RestMethod -Uri "http://127.0.0.1:4040/api/tunnels" -Method Get -ErrorAction Stop
               $ngrokUrl = $response.tunnels[0].public_url
               if ($ngrokUrl) { break }
             } catch {
@@ -200,7 +200,7 @@ jobs:
 
             # Try to get ngrok URL again
             try {
-              $response = Invoke-RestMethod -Uri "http://localhost:4040/api/tunnels" -Method Get -ErrorAction SilentlyContinue
+              $response = Invoke-RestMethod -Uri "http://127.0.0.1:4040/api/tunnels" -Method Get -ErrorAction SilentlyContinue
               $publicUrl = $response.tunnels[0].public_url
               Write-Host "🌐 Current URL: $publicUrl/vnc.html"
               $publicUrl | Out-File -FilePath "C:\novnc-url.txt" -Force
