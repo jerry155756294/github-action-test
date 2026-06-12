@@ -152,7 +152,7 @@ jobs:
           $ngrokUrl | Out-File -FilePath "C:\novnc-url.txt"
 
           # Print to GitHub Actions summary
-          "## 🎉 noVNC Remote Desktop is ready!" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+          "## noVNC Remote Desktop is ready!" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
           "" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
           "| Detail | Value |" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
           "|--------|-------|" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
@@ -162,7 +162,7 @@ jobs:
 
           Write-Host ""
           Write-Host "========================================="
-          Write-Host "🎉 noVNC is ready!"
+          Write-Host "noVNC is ready!"
           Write-Host "========================================="
           Write-Host ""
           Write-Host "Access your Windows desktop in browser:"
@@ -174,7 +174,7 @@ jobs:
           Write-Host "  - Password: ${{ github.event.inputs.vnc_password }}"
           Write-Host ""
           Write-Host "========================================="
-          Write-Host "⚠️  This session will remain active until:"
+          Write-Host "This session will remain active until:"
           Write-Host "    1. You cancel this workflow manually, OR"
           Write-Host "    2. The 6-hour timeout is reached"
           Write-Host "========================================="
@@ -188,9 +188,9 @@ jobs:
           Write-Host "Session is active!"
           Write-Host ""
           if ($ngrokUrl) {
-            Write-Host "🌐 Access URL: $ngrokUrl/vnc.html"
+            Write-Host "Access URL: $ngrokUrl/vnc.html"
           }
-          Write-Host "🔑 Password: ${{ github.event.inputs.vnc_password }}"
+          Write-Host "Password: ${{ github.event.inputs.vnc_password }}"
           Write-Host ""
           Write-Host "This session will stay active for up to 6 hours."
           Write-Host "Press Ctrl+C in Actions to terminate."
@@ -208,7 +208,7 @@ jobs:
             # Check if VNC is still running
             $vncProcess = Get-Process -Name "tvnserver" -ErrorAction SilentlyContinue
             if (-not $vncProcess) {
-              Write-Host "⚠️  VNC server stopped unexpectedly!"
+              Write-Host "VNC server stopped unexpectedly!"
               break
             }
 
@@ -234,9 +234,9 @@ jobs:
               } catch {}
             }
             if ($publicUrl) {
-              Write-Host "🌐 Current URL: $publicUrl/vnc.html"
+              Write-Host "Current URL: $publicUrl/vnc.html"
               $publicUrl | Out-File -FilePath "C:\novnc-url.txt" -Force
             } else {
-              Write-Host "⚠️  ngrok tunnel may have disconnected"
+              Write-Host "ngrok tunnel may have disconnected"
             }
           }
