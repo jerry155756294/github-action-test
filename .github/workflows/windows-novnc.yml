@@ -107,55 +107,76 @@ jobs:
           Write-Host "Waiting for ngrok to establish tunnel..."
           Start-Sleep -Seconds 10
 
-      - name: Get ngrok Public URL
+      - name: Get ngrok Public URL (with retry)
         shell: powershell
         run: |
-          Write-Host "========================================="
-          Write-Host "Fetching ngrok public URL..."
-
-          try {
-            $response = Invoke-RestMethod -Uri "http://localhost:4040/api/tunnels" -Method Get
-            $publicUrl = $response.tunnels[0].public_url
-
-            Write-Host ""
-            Write-Host "========================================="
-            Write-Host "🎉 noVNC is ready!"
-            Write-Host "========================================="
-            Write-Host ""
-            Write-Host "Access your Windows desktop in browser:"
-            Write-Host "URL: $publicUrl/vnc.html"
-            Write-Host ""
-            Write-Host "Connection Details:"
-            Write-Host "  - Host: Use the ngrok URL above"
-            Write-Host "  - Port: 443 (ngrok handles forwarding)"
-            Write-Host "  - Password: ${{ github.event.inputs.vnc_password }}"
-            Write-Host ""
-            Write-Host "========================================="
-            Write-Host "⚠️  This session will remain active until:"
-            Write-Host "    1. You cancel this workflow manually, OR"
-            Write-Host "    2. The 6-hour timeout is reached"
-            Write-Host "========================================="
-            Write-Host ""
-
-            # Save URL to file for easy access
-            $publicUrl | Out-File -FilePath "C:\novnc-url.txt"
-
-          } catch {
-            Write-Host "Failed to get ngrok URL. Check if ngrok started correctly."
-            Write-Host "Error: $_"
-
-            # Show ngrok log if available
-            if (Test-Path "C:\ngrok-log.txt") {
-              Write-Host ""
-              Write-Host "ngrok log:"
-              Get-Content "C:\ngrok-log.txt"
+          $ngrokUrl = $null
+          for ($i = 0; $i -lt 12; $i++) {
+            try {
+              $response = Invoke-RestMethod -Uri "http://localhost:4040/api/tunnels" -Method Get -ErrorAction Stop
+              $ngrokUrl = $response.tunnels[0].public_url
+              if ($ngrokUrl) { break }
+            } catch {
+              Write-Host "Attempt $($i+1): ngrok API not ready yet, retrying in 5s..."
+              Start-Sleep -Seconds 5
             }
           }
+
+          if (-not $ngrokUrl) {
+            Write-Host "::error::Failed to get ngrok URL after 12 attempts."
+            if (Test-Path "C:\ngrok-log.txt") {
+              Get-Content "C:\ngrok-log.txt"
+            }
+            exit 1
+          }
+
+          # Save for the keep-alive step
+          $ngrokUrl | Out-File -FilePath "C:\novnc-url.txt"
+
+          # Print to GitHub Actions summary
+          "## 🎉 noVNC Remote Desktop is ready!" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+          "" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+          "| Detail | Value |" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+          "|--------|-------|" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+          "| **Access URL** | [$ngrokUrl/vnc.html]($ngrokUrl/vnc.html) |" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+          "| **Password** | ${{ github.event.inputs.vnc_password }} |" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+          "| **Session Timeout** | 6 hours |" | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Encoding utf8 -Append
+
+          Write-Host ""
+          Write-Host "========================================="
+          Write-Host "🎉 noVNC is ready!"
+          Write-Host "========================================="
+          Write-Host ""
+          Write-Host "Access your Windows desktop in browser:"
+          Write-Host "URL: $ngrokUrl/vnc.html"
+          Write-Host ""
+          Write-Host "Connection Details:"
+          Write-Host "  - Host: Use the ngrok URL above"
+          Write-Host "  - Port: 443 (ngrok handles forwarding)"
+          Write-Host "  - Password: ${{ github.event.inputs.vnc_password }}"
+          Write-Host ""
+          Write-Host "========================================="
+          Write-Host "⚠️  This session will remain active until:"
+          Write-Host "    1. You cancel this workflow manually, OR"
+          Write-Host "    2. The 6-hour timeout is reached"
+          Write-Host "========================================="
 
       - name: Keep session alive
         shell: powershell
         run: |
-          Write-Host "Session is active. Press Ctrl+C in Actions to terminate."
+          $ngrokUrl = (Get-Content "C:\novnc-url.txt" -ErrorAction SilentlyContinue)
+
+          Write-Host "========================================="
+          Write-Host "Session is active!"
+          Write-Host ""
+          if ($ngrokUrl) {
+            Write-Host "🌐 Access URL: $ngrokUrl/vnc.html"
+          }
+          Write-Host "🔑 Password: ${{ github.event.inputs.vnc_password }}"
+          Write-Host ""
+          Write-Host "This session will stay active for up to 6 hours."
+          Write-Host "Press Ctrl+C in Actions to terminate."
+          Write-Host "========================================="
           Write-Host ""
           Write-Host "Checking connection status every 5 minutes..."
 
@@ -178,6 +199,7 @@ jobs:
               $response = Invoke-RestMethod -Uri "http://localhost:4040/api/tunnels" -Method Get -ErrorAction SilentlyContinue
               $publicUrl = $response.tunnels[0].public_url
               Write-Host "🌐 Current URL: $publicUrl/vnc.html"
+              $publicUrl | Out-File -FilePath "C:\novnc-url.txt" -Force
             } catch {
               Write-Host "⚠️  ngrok tunnel may have disconnected"
             }
