@@ -123,7 +123,7 @@ jobs:
             if (Test-Path "C:\ngrok-log.txt") {
               $logContent = Get-Content "C:\ngrok-log.txt"
               foreach ($line in $logContent) {
-                if ($line -match 'url=(https://[a-zA-Z0-9.-]+)') {
+                if ($line -match "url=(https://[a-zA-Z0-9.-]+)") {
                   $ngrokUrl = $Matches[1]
                   break
                 }
@@ -221,7 +221,7 @@ jobs:
             if (Test-Path "C:\ngrok-log.txt") {
               $logContent = Get-Content "C:\ngrok-log.txt"
               foreach ($line in $logContent) {
-                if ($line -match 'url=(https://[a-zA-Z0-9.-]+)') {
+                if ($line -match "url=(https://[a-zA-Z0-9.-]+)") {
                   $publicUrl = $Matches[1]
                   break
                 }
