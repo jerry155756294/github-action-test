@@ -79,7 +79,9 @@ jobs:
           Write-Host "ngrok installed to C:\ngrok"
 
       - name: Configure ngrok (if token provided)
-        if: secrets.NGROK_AUTH_TOKEN != ''
+        env:
+          NGROK_AUTH_TOKEN: ${{ secrets.NGROK_AUTH_TOKEN }}
+        if: env.NGROK_AUTH_TOKEN != ''
         shell: powershell
         run: |
           Write-Host "Configuring ngrok with auth token..."
