@@ -102,10 +102,17 @@ jobs:
         shell: powershell
         run: |
           Write-Host "Starting ngrok tunnel for noVNC (HTTP on port 6080)..."
-          Start-Process -FilePath "C:\ngrok\ngrok.exe" -ArgumentList "http 6080 --log=stdout" -WindowStyle Hidden -RedirectStandardOutput "C:\ngrok-log.txt"
+          $logFile = "C:\ngrok-log.txt"
+          $job = Start-Job -ScriptBlock {
+            param($exe, $log)
+            & $exe http 6080 --log=stdout *>$log
+          } -ArgumentList "C:\ngrok\ngrok.exe", $logFile
+
+          # Save job info for keep-alive step
+          $job.Id | Out-File "C:\ngrok-job-id.txt"
 
           Write-Host "Waiting for ngrok to establish tunnel..."
-          Start-Sleep -Seconds 10
+          Start-Sleep -Seconds 15
 
       - name: Get ngrok Public URL (with retry)
         shell: powershell
@@ -117,7 +124,7 @@ jobs:
               $ngrokUrl = $response.tunnels[0].public_url
               if ($ngrokUrl) { break }
             } catch {
-              Write-Host "Attempt $($i+1): ngrok API not ready yet, retrying in 5s..."
+              Write-Host "Attempt $($i+1): $($_.Exception.Message)"
               Start-Sleep -Seconds 5
             }
           }
