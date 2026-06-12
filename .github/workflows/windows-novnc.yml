@@ -102,8 +102,7 @@ jobs:
         shell: powershell
         run: |
           Write-Host "Starting ngrok tunnel for noVNC (HTTP on port 6080)..."
-          $ngrokLog = "C:\ngrok-log.txt"
-          $p = Start-Process -FilePath "C:\ngrok\ngrok.exe" -ArgumentList "http 6080 --log=stdout" -WindowStyle Hidden -RedirectStandardOutput $ngrokLog -PassThru
+          $p = Start-Process -FilePath "C:\ngrok\ngrok.exe" -ArgumentList "http 6080 --log C:\ngrok-log.txt" -WindowStyle Hidden -PassThru
 
           # Save PID for keep-alive step
           $p.Id | Out-File "C:\ngrok-pid.txt"
