@@ -115,7 +115,21 @@ jobs:
         shell: powershell
         run: |
           $ngrokUrl = $null
+          $env:http_proxy = $null
+          $env:https_proxy = $null
+          $env:HTTP_PROXY = $null
+          $env:HTTPS_PROXY = $null
           for ($i = 0; $i -lt 12; $i++) {
+            if (Test-Path "C:\ngrok-log.txt") {
+              $logContent = Get-Content "C:\ngrok-log.txt"
+              foreach ($line in $logContent) {
+                if ($line -match 'url=(https://[a-zA-Z0-9.-]+)') {
+                  $ngrokUrl = $Matches[1]
+                  break
+                }
+              }
+            }
+            if ($ngrokUrl) { break }
             try {
               $response = Invoke-RestMethod -Uri "http://127.0.0.1:4040/api/tunnels" -Method Get -ErrorAction Stop
               $ngrokUrl = $response.tunnels[0].public_url
@@ -199,12 +213,30 @@ jobs:
             }
 
             # Try to get ngrok URL again
-            try {
-              $response = Invoke-RestMethod -Uri "http://127.0.0.1:4040/api/tunnels" -Method Get -ErrorAction SilentlyContinue
-              $publicUrl = $response.tunnels[0].public_url
+            $env:http_proxy = $null
+            $env:https_proxy = $null
+            $env:HTTP_PROXY = $null
+            $env:HTTPS_PROXY = $null
+            $publicUrl = $null
+            if (Test-Path "C:\ngrok-log.txt") {
+              $logContent = Get-Content "C:\ngrok-log.txt"
+              foreach ($line in $logContent) {
+                if ($line -match 'url=(https://[a-zA-Z0-9.-]+)') {
+                  $publicUrl = $Matches[1]
+                  break
+                }
+              }
+            }
+            if (-not $publicUrl) {
+              try {
+                $response = Invoke-RestMethod -Uri "http://127.0.0.1:4040/api/tunnels" -Method Get -ErrorAction SilentlyContinue
+                $publicUrl = $response.tunnels[0].public_url
+              } catch {}
+            }
+            if ($publicUrl) {
               Write-Host "🌐 Current URL: $publicUrl/vnc.html"
               $publicUrl | Out-File -FilePath "C:\novnc-url.txt" -Force
-            } catch {
+            } else {
               Write-Host "⚠️  ngrok tunnel may have disconnected"
             }
           }
